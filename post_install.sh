@@ -172,7 +172,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mApps Extras concluído.\e[0m\";"
 			;;
 		"wall")
-			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${USER_HOME}/Imagens/0130.jpg\" https://github.com/amonetlol/arch_post_install/raw/refs/heads/main/0130.jpg;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${USER_HOME}/Imagens/0130.jpg\" https://github.com/amonetlol/arch_pi/raw/refs/heads/main/0130.jpg;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${USER_HOME}/Imagens/0130.jpg\";"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${USER_HOME}/Imagens/0130.jpg\";"
 			cmnds+=" echo -e \"\e[33mWallpaper concluído.\e[0m\";"
