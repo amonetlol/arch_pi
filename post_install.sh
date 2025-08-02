@@ -95,7 +95,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mNeovim concluído.\e[0m\";"
 			;;
 		"alias_")
-			cmnds+=" curl -sSLo \"${USER_HOME}/.aliases.sh\" https://github.com/amonetlol/arch/raw/refs/heads/main/aliases.sh;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- curl -sSLo \"${USER_HOME}/.aliases.sh\" https://github.com/amonetlol/arch/raw/refs/heads/main/aliases.sh;"
 			cmnds+=" echo 'source ${USER_HOME}/.aliases.sh' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo -e \"\e[33mAlias concluído.\e[0m\";"
 			;;
@@ -172,14 +172,9 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mApps Extras concluído.\e[0m\";"
 			;;
 		"wall")
-			cmnds+=" WALLPAPER_URL=\"https://github.com/amonetlol/arch_post_install/raw/refs/heads/main/0130.jpg\";"
-			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens\";"
-			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
-			cmnds+=" if runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\"; then echo \"Download do wallpaper concluído: ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao baixar o wallpaper de ${WALLPAPER_URL}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\"; then echo \"Wallpaper definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null; then echo \"Wallpaper escuro definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper escuro. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${USER_HOME}/Imagens/0130.jpg\" https://github.com/amonetlol/arch_post_install/raw/refs/heads/main/0130.jpg;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${USER_HOME}/Imagens/0130.jpg\";"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${USER_HOME}/Imagens/0130.jpg\";"
 			cmnds+=" echo -e \"\e[33mWallpaper concluído.\e[0m\";"
 			;;
 		"chao")
