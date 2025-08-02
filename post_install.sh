@@ -122,7 +122,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mNerd Apps concluído.\e[0m\";"
 			;;
 		"app")
-			cmnds+=" for pkg in gnome-tweaks sushi; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" for pkg in firefox firefox-i18n-pt-br gnome-tweaks sushi; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
 			cmnds+=" echo -e \"\e[33mApps concluído.\e[0m\";"
 			;;
 		"misc")
@@ -153,7 +153,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo '# History' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo 'export HISTSIZE=1000                    # History will save N commands' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo 'export HISTFILESIZE=\${HISTSIZE}         # History will remember N commands' >> ${USER_HOME}/.bashrc;"
-			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ${USER_HOME}.bashrc;"
 			cmnds+=" echo 'export HISTTIMEFORMAT=\"%F %T \"          # Add date to history' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo '# History ignore list' >> ${USER_HOME}/.bashrc;"
@@ -180,11 +180,11 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" WALLPAPER_URL=\"https://raw.githubusercontent.com/amonetlol/rice/main/0130.jpg\";"
 			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
 			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; };"
+			cmnds+=" if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
-			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\";"
-			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\";"
-			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null;"
+			cmnds+=" if runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\"; then echo \"Download do wallpaper concluído: ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao baixar o wallpaper de ${WALLPAPER_URL}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\"; then echo \"Wallpaper definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null; then echo \"Wallpaper escuro definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper escuro. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" echo -e \"\e[33mWallpaper concluído.\e[0m\";"
 			;;
 		"chao")
