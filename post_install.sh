@@ -131,6 +131,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" runuser -u ${CURRENT_USER} -- fc-cache -vf;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface font-name 'Poppins Regular 12';"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface document-font-name 'Poppins Regular 12';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.wm.preferences button-layout ':minimize,maximize,close';"
 			cmnds+=" echo -e \"\e[33mFonts concluído.\e[0m\";"
 			;;
 		"bashrc")
@@ -171,14 +172,14 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mApps Extras concluído.\e[0m\";"
 			;;
 		"wall")
-			cmnds+=" WALLPAPER_SRC=\"$(pwd)/0130.jpg\";"
-			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
+			cmnds+=" WALLPAPER_URL=\"https://github.com/amonetlol/arch_post_install/raw/refs/heads/main/0130.jpg\";"
+			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens\";"
 			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" if [ -f \"${WALLPAPER_SRC}\" ]; then if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" if runuser -u ${CURRENT_USER} -- mv \"${WALLPAPER_SRC}\" \"${DEST_FILE}\"; then echo \"Wallpaper movido para ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao mover o wallpaper de ${WALLPAPER_SRC}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
+			cmnds+=" if runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\"; then echo \"Download do wallpaper concluído: ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao baixar o wallpaper de ${WALLPAPER_URL}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\"; then echo \"Wallpaper definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null; then echo \"Wallpaper escuro definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper escuro. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" else echo \"Arquivo ${WALLPAPER_SRC} não encontrado. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" echo -e \"\e[33mWallpaper concluído.\e[0m\";"
 			;;
 		"chao")
