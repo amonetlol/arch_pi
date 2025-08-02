@@ -8,7 +8,7 @@ LOG_FILE="${USER_HOME}/Downloads/post_install.log"
 # Cria ou limpa o arquivo de log
 echo "Início da execução: $(date)" > "${LOG_FILE}"
 
-# Exibe uma caixa de seleção múltipla com botões Tudo ON e Tudo OFF
+# Exibe uma caixa de seleção múltipla
 opcoes=$(zenity --list --checklist \
   --title="Pio's Arch Post Install" \
   --text="Marque as opções desejadas" \
@@ -19,8 +19,6 @@ opcoes=$(zenity --list --checklist \
   --print-column=2 \
   --hide-column=2 \
   --column="Opções" --column="variavel" --column="Ação" \
-  --extra-button="Tudo ON" \
-  --extra-button="Tudo OFF" \
   --ok-label="OK" \
   --cancel-label="Cancelar" \
   TRUE twe "Tweaks" \
@@ -45,17 +43,11 @@ opcoes=$(zenity --list --checklist \
   TRUE hide "Hidden Shortcut" \
   TRUE rice "Cursor, Tema e Icones")
 
-# Verifica se o usuário clicou em Tudo ON, Tudo OFF ou cancelou
+# Verifica se o usuário cancelou
 case $? in
   1)
-    if [ "$opcoes" = "Tudo ON" ]; then
-      opcoes="twe,vm,ref,aur_helper,ft,nv,alias_,star,debloat,nerdapp,app,misc,files,font,bashrc,flat,extra,wall,chao,hide,rice"
-    elif [ "$opcoes" = "Tudo OFF" ]; then
-      opcoes=""
-    else
-      echo "Cancelado pelo usuário." | tee -a "${LOG_FILE}"
-      exit 1
-    fi
+    echo "Cancelado pelo usuário." | tee -a "${LOG_FILE}"
+    exit 1
     ;;
 esac
 
@@ -73,12 +65,12 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mTweaks concluído.\e[0m\";"
 			;;
 		"vm")
-			cmnds+=" for pkg in open-vm-tools fuse2 gtkmm3; do pacman -Q \$pkg &>/dev/null || pacman -S --needed --noconfirm \$pkg; done;"
+			cmnds+=" pacman -S --needed --noconfirm open-vm-tools fuse2 gtkmm3;"
 			cmnds+=" systemctl enable --now vmtoolsd;"
 			cmnds+=" echo -e \"\e[33mVmware Guest concluído.\e[0m\";"
 			;;
 		"ref")
-			cmnds+=" for pkg in reflector rsync; do pacman -Q \$pkg &>/dev/null || pacman -S --noconfirm \$pkg; done;"
+			cmnds+=" pacman -S --noconfirm reflector rsync;"
 			cmnds+=" reflector --country Brazil --latest 10 --sort rate --save /etc/pacman.d/mirrorlist;"
 			cmnds+=" echo -e \"\e[33mReflector concluído.\e[0m\";"
 			;;
@@ -91,13 +83,13 @@ for opcao in "${comandos[@]}"; do
 		"ft")
 			cmnds+=" mkdir -p \"${USER_HOME}/.config/fastfetch/\";"
 			cmnds+=" curl -sSLo \"${USER_HOME}/.config/fastfetch/config.jsonc\" https://raw.githubusercontent.com/amonetlol/arch_vm/refs/heads/main/fastfetch_ChrisTitus-config.jsonc;"
-			cmnds+=" for pkg in fastfetch ttf-cousine-nerd ttf-hack-nerd; do pacman -Q \$pkg &>/dev/null || pacman -S --noconfirm \$pkg; done;"
+			cmnds+=" pacman -S --noconfirm fastfetch ttf-cousine-nerd ttf-hack-nerd;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface monospace-font-name 'Hack Nerd Font Mono 12';"
 			cmnds+=" echo -e \"\e[33mFastfetch concluído.\e[0m\";"
 			;;
 		"nv")
 			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/amonetlol/nvim_gruvbox.git ${USER_HOME}/.config/nvim;"
-			cmnds+=" for pkg in neovim fd ripgrep lua51 lua51-jsregexp luarocks tree-sitter-cli xclip nodejs python-pynvim npm wl-clipboard python-pip lazygit fzf; do pacman -Q \$pkg &>/dev/null || yay -S --needed --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --needed --noconfirm neovim fd ripgrep lua51 lua51-jsregexp luarocks tree-sitter-cli xclip nodejs python-pynvim npm wl-clipboard python-pip lazygit fzf;"
 			cmnds+=" rm -rf ${USER_HOME}/.config/nvim/.git;"
 			cmnds+=" rm -rf ${USER_HOME}/.config/nvim/.gitignore;"
 			cmnds+=" echo -e \"\e[33mNeovim concluído.\e[0m\";"
@@ -108,33 +100,35 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mAlias concluído.\e[0m\";"
 			;;
 		"star")
-			cmnds+=" pacman -Q starship &>/dev/null || pacman -S starship --noconfirm;"
+			cmnds+=" pacman -S starship --noconfirm;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O ${USER_HOME}/.config/starship.toml https://raw.githubusercontent.com/amonetlol/terminal-bash/refs/heads/main/starship-arch-os.toml;"
 			cmnds+=" echo 'eval \"\$(starship init bash)\"' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo -e \"\e[33mStarship concluído.\e[0m\";"
 			;;
 		"debloat")
-			cmnds+=" for pkg in decibels snapshot malcontent epiphany simple-scan gnome-music gnome-weather gnome-characters gnome-contacts gnome-maps gnome-calendar gnome-software gnome-tour; do pacman -Q \$pkg &>/dev/null && pacman -Rns --noconfirm \$pkg; done;"
+			cmnds+=" pacman -Rns --noconfirm decibels snapshot malcontent epiphany simple-scan gnome-music gnome-weather gnome-characters gnome-contacts gnome-maps gnome-calendar gnome-software gnome-tour;"
 			cmnds+=" echo -e \"\e[33mDebloat Gnome concluído.\e[0m\";"
 			;;
 		"nerdapp")
-			cmnds+=" for pkg in btop eza duf tldr fd fzf inxi zoxide; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --noconfirm btop eza duf tldr fd fzf inxi zoxide;"
 			cmnds+=" echo -e \"\e[33mNerd Apps concluído.\e[0m\";"
 			;;
 		"app")
-			cmnds+=" for pkg in firefox firefox-i18n-pt-br gnome-tweaks sushi; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --noconfirm gnome-tweaks sushi firefox firefox-i18n-pt-br;"
 			cmnds+=" echo -e \"\e[33mApps concluído.\e[0m\";"
 			;;
 		"misc")
-			cmnds+=" for pkg in usbutils net-tools inetutils ffmpegthumbnailer intel-ucode base-devel power-profiles-daemon zip unzip unrar p7zip lzop 7zip xz; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --noconfirm usbutils net-tools inetutils ffmpegthumbnailer intel-ucode base-devel power-profiles-daemon zip unzip unrar p7zip lzop 7zip xz;"
 			cmnds+=" echo -e \"\e[33mMisc Apps concluído.\e[0m\";"
 			;;
 		"files")
-			cmnds+=" for pkg in dosfstools ntfs-3g cifs-utils exfat-utils gvfs gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd; do pacman -Q \$pkg &>/dev/null || pacman -S --noconfirm \$pkg; done;"
+			cmnds+=" pacman -S --noconfirm dosfstools ntfs-3g cifs-utils exfat-utils gvfs gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd;"
 			cmnds+=" echo -e \"\e[33mFile System concluído.\e[0m\";"
 			;;
 		"font")
-			cmnds+=" for pkg in ttf-bitstream-vera ttf-dejavu ttf-liberation adobe-source-code-pro-fonts adobe-source-sans-fonts adobe-source-serif-fonts ttf-anonymous-pro ttf-droid ttf-ubuntu-font-family ttf-roboto ttf-roboto-mono ttf-font-awesome ttf-fira-code ttf-fira-mono ttf-fira-sans cantarell-fonts ttf-hack-nerd ttf-meslo-nerd ttf-cascadia-code-nerd ttf-poppins ttf-intel-one-mono; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --noconfirm ttf-bitstream-vera ttf-dejavu ttf-liberation adobe-source-code-pro-fonts adobe-source-sans-fonts adobe-source-serif-fonts ttf-anonymous-pro ttf-droid ttf-ubuntu-font-family ttf-font-awesome ttf-fira-code ttf-fira-mono ttf-fira-sans cantarell-fonts ttf-hack-nerd ttf-meslo-nerd ttf-cascadia-code-nerd;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/amonetlol/fonts ${USER_HOME}/.local/share/fonts;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- fc-cache -vf;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface font-name 'Poppins Regular 12';"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface document-font-name 'Poppins Regular 12';"
 			cmnds+=" echo -e \"\e[33mFonts concluído.\e[0m\";"
@@ -153,7 +147,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo '# History' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo 'export HISTSIZE=1000                    # History will save N commands' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo 'export HISTFILESIZE=\${HISTSIZE}         # History will remember N commands' >> ${USER_HOME}/.bashrc;"
-			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ${USER_HOME}.bashrc;"
+			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo 'export HISTTIMEFORMAT=\"%F %T \"          # Add date to history' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
 			cmnds+=" echo '# History ignore list' >> ${USER_HOME}/.bashrc;"
@@ -169,22 +163,22 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mTuning Bashrc concluído.\e[0m\";"
 			;;
 		"flat")
-			cmnds+=" pacman -Q flatpak &>/dev/null || pacman -S --noconfirm flatpak;"
+			cmnds+=" pacman -S --noconfirm flatpak;"
 			cmnds+=" echo -e \"\e[33mFlatpak concluído.\e[0m\";"
 			;;
 		"extra")
-			cmnds+=" for pkg in extension-manager vlc totem google-chrome brave-bin; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" yay -S --noconfirm extension-manager vlc totem google-chrome brave-bin;"
 			cmnds+=" echo -e \"\e[33mApps Extras concluído.\e[0m\";"
 			;;
 		"wall")
-			cmnds+=" WALLPAPER_URL=\"https://raw.githubusercontent.com/amonetlol/rice/main/0130.jpg\";"
+			cmnds+=" WALLPAPER_SRC=\"$(pwd)/0130.jpg\";"
 			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
 			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
-			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
-			cmnds+=" if runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\"; then echo \"Download do wallpaper concluído: ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao baixar o wallpaper de ${WALLPAPER_URL}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if [ -f \"${WALLPAPER_SRC}\" ]; then if mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\"; then echo \"Pasta ${DEST_DIR} criada ou já existente.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao criar ou configurar permissões da pasta ${DEST_DIR}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" if runuser -u ${CURRENT_USER} -- mv \"${WALLPAPER_SRC}\" \"${DEST_FILE}\"; then echo \"Wallpaper movido para ${DEST_FILE}\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao mover o wallpaper de ${WALLPAPER_SRC}. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\"; then echo \"Wallpaper definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" if runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null; then echo \"Wallpaper escuro definido com sucesso.\" | tee -a \"${LOG_FILE}\"; else echo \"Erro ao definir o wallpaper escuro. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
+			cmnds+=" else echo \"Arquivo ${WALLPAPER_SRC} não encontrado. Continuando...\" | tee -a \"${LOG_FILE}\"; fi;"
 			cmnds+=" echo -e \"\e[33mWallpaper concluído.\e[0m\";"
 			;;
 		"chao")
