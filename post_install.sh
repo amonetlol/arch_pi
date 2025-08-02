@@ -39,6 +39,7 @@ opcoes=$(zenity --list --checklist \
   TRUE font "Fonts" \
   TRUE bashrc "Tuning Bashrc" \
   FALSE flat "Flatpak" \
+  FALSE extra "Apps Extras" \
   TRUE wall "Wallpaper" \
   TRUE chao "Chaotic" \
   TRUE hide "Hidden Shortcut" \
@@ -48,7 +49,7 @@ opcoes=$(zenity --list --checklist \
 case $? in
   1)
     if [ "$opcoes" = "Tudo ON" ]; then
-      opcoes="twe,vm,ref,aur_helper,ft,nv,alias_,star,debloat,nerdapp,app,misc,files,font,bashrc,flat,wall,chao,hide,rice"
+      opcoes="twe,vm,ref,aur_helper,ft,nv,alias_,star,debloat,nerdapp,app,misc,files,font,bashrc,flat,extra,wall,chao,hide,rice"
     elif [ "$opcoes" = "Tudo OFF" ]; then
       opcoes=""
     else
@@ -121,7 +122,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo -e \"\e[33mNerd Apps concluído.\e[0m\";"
 			;;
 		"app")
-			cmnds+=" for pkg in firefox firefox-i18n-pt-br extension-manager vlc totem gnome-tweaks sushi google-chrome brave-bin; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" for pkg in gnome-tweaks sushi; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
 			cmnds+=" echo -e \"\e[33mApps concluído.\e[0m\";"
 			;;
 		"misc")
@@ -171,11 +172,15 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" pacman -Q flatpak &>/dev/null || pacman -S --noconfirm flatpak;"
 			cmnds+=" echo -e \"\e[33mFlatpak concluído.\e[0m\";"
 			;;
+		"extra")
+			cmnds+=" for pkg in extension-manager vlc totem google-chrome brave-bin; do pacman -Q \$pkg &>/dev/null || yay -S --noconfirm \$pkg; done;"
+			cmnds+=" echo -e \"\e[33mApps Extras concluído.\e[0m\";"
+			;;
 		"wall")
 			cmnds+=" WALLPAPER_URL=\"https://raw.githubusercontent.com/amonetlol/rice/main/0130.jpg\";"
 			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
 			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" if [ ! -d \"${DEST_DIR}\" ]; then mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; }; echo \"Pasta ${DEST_DIR} criada.\"; else echo \"Pasta ${DEST_DIR} já existe.\"; fi;"
+			cmnds+=" mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" && chmod 755 \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; };"
 			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\";"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\";"
