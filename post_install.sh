@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# Mensagem de aviso inicial
-zenity --info \
-	--title="AVISO" \
-	--text="Esse menu pressupõe que você instalou o Arch (Gnome) através do archinstall, assim a maior parte das configurações já foi realizada"
+# Obtém o usuário atual e o diretório home
+CURRENT_USER=$(whoami)
+USER_HOME=$(eval echo ~$CURRENT_USER)
 
-# Exibe uma caixa de seleção múltipla com botões ON e OFF
+# Exibe uma caixa de seleção múltipla com botões Tudo ON e Tudo OFF
 opcoes=$(zenity --list --checklist \
   --title="Pio's Arch Post Install" \
   --text="Marque as opções desejadas" \
@@ -16,9 +15,10 @@ opcoes=$(zenity --list --checklist \
   --print-column=2 \
   --hide-column=2 \
   --column="Opções" --column="variavel" --column="Ação" \
+  --extra-button="Tudo ON" \
+  --extra-button="Tudo OFF" \
   --ok-label="OK" \
-  --extra-button="ON" \
-  --extra-button="OFF" \
+  --cancel-label="Cancelar" \
   TRUE vm "Vmware Guest" \
   TRUE aur_helper "Yay" \
   TRUE ft "Fastfetch" \
@@ -40,12 +40,12 @@ opcoes=$(zenity --list --checklist \
   TRUE chao "Chaotic" \
   TRUE hide "Hidden Shortcut")
 
-# Verifica se o usuário clicou em ON, OFF ou cancelou
+# Verifica se o usuário clicou em Tudo ON, Tudo OFF ou cancelou
 case $? in
   1)
-    if [ "$opcoes" = "ON" ]; then
+    if [ "$opcoes" = "Tudo ON" ]; then
       opcoes="vm,aur_helper,ft,nv,alias_,star,debloat,twe,nerdapp,app,misc,ref,files,font,bashrc,flat,rice,wall,chao,hide"
-    elif [ "$opcoes" = "OFF" ]; then
+    elif [ "$opcoes" = "Tudo OFF" ]; then
       opcoes=""
     else
       echo "Cancelado pelo usuário."
@@ -67,28 +67,28 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"aur_helper")
 			cmnds+=" if ! command -v git &>/dev/null; then pacman -S --noconfirm git; fi;"
-			cmnds+=" if [ ! -d \"\$HOME/.src\" ]; then mkdir -p \"\$HOME/.src\" && cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; else cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; fi;"
+			cmnds+=" if [ ! -d \"${USER_HOME}/Downloads/.src\" ]; then mkdir -p \"${USER_HOME}/Downloads/.src\" && cd \"${USER_HOME}/Downloads/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; else cd \"${USER_HOME}/Downloads/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; fi;"
 			;;
 		"ft")
-			cmnds+=" mkdir -p \"\${HOME}/.config/fastfetch/\";"
-			cmnds+=" curl -sSLo \"\${HOME}/.config/fastfetch/config.jsonc\" https://raw.githubusercontent.com/amonetlol/arch_vm/refs/heads/main/fastfetch_ChrisTitus-config.jsonc;"
+			cmnds+=" mkdir -p \"${USER_HOME}/.config/fastfetch/\";"
+			cmnds+=" curl -sSLo \"${USER_HOME}/.config/fastfetch/config.jsonc\" https://raw.githubusercontent.com/amonetlol/arch_vm/refs/heads/main/fastfetch_ChrisTitus-config.jsonc;"
 			cmnds+=" pacman -S ttf-cousine-nerd ttf-hack-nerd --noconfirm;"
-			cmnds+=" gsettings set org.gnome.desktop.interface monospace-font-name 'Hack Nerd Font Mono 12';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface monospace-font-name 'Hack Nerd Font Mono 12';"
 			;;
 		"nv")
-			cmnds+=" git clone https://github.com/amonetlol/nvim_gruvbox.git ~/.config/nvim;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/amonetlol/nvim_gruvbox.git ${USER_HOME}/.config/nvim;"
 			cmnds+=" yay -S --needed --noconfirm fd ripgrep lua51 luarocks tree-sitter-cli xclip nodejs python-pynvim npm wl-clipboard python-pip lazygit fzf;"
-			cmnds+=" rm -rf ~/.config/nvim/.git;"
-			cmnds+=" rm -rf ~/.config/nvim/.gitignore;"
+			cmnds+=" rm -rf ${USER_HOME}/.config/nvim/.git;"
+			cmnds+=" rm -rf ${USER_HOME}/.config/nvim/.gitignore;"
 			;;
 		"alias_")
-			cmnds+=" curl -sSLo \"\${HOME}/.aliases.sh\" https://github.com/amonetlol/arch/raw/refs/heads/main/aliases.sh;"
-			cmnds+=" echo 'source ~/.aliases.sh' >> ~/.bashrc;"
+			cmnds+=" curl -sSLo \"${USER_HOME}/.aliases.sh\" https://github.com/amonetlol/arch/raw/refs/heads/main/aliases.sh;"
+			cmnds+=" echo 'source ${USER_HOME}/.aliases.sh' >> ${USER_HOME}/.bashrc;"
 			;;
 		"star")
 			cmnds+=" pacman -S starship --noconfirm;"
-			cmnds+=" wget -O ~/.config/starship.toml https://raw.githubusercontent.com/amonetlol/terminal-bash/refs/heads/main/starship-arch-os.toml;"
-			cmnds+=" echo 'eval \"\$(starship init bash)\"' >> ~/.bashrc;"
+			cmnds+=" wget -O ${USER_HOME}/.config/starship.toml https://raw.githubusercontent.com/amonetlol/terminal-bash/refs/heads/main/starship-arch-os.toml;"
+			cmnds+=" echo 'eval \"\$(starship init bash)\"' >> ${USER_HOME}/.bashrc;"
 			;;
 		"debloat")
 			cmnds+=" pacman -Rns --noconfirm decibels snapshot malcontent epiphany simple-scan gnome-music gnome-weather gnome-characters gnome-contacts gnome-maps gnome-calendar gnome-software gnome-tour;"
@@ -116,68 +116,68 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"font")
 			cmnds+=" yay -S --noconfirm ttf-bitstream-vera ttf-dejavu ttf-liberation adobe-source-code-pro-fonts adobe-source-sans-fonts adobe-source-serif-fonts ttf-anonymous-pro ttf-droid ttf-ubuntu-font-family ttf-roboto ttf-roboto-mono ttf-font-awesome ttf-fira-code ttf-fira-mono ttf-fira-sans cantarell-fonts ttf-hack-nerd ttf-meslo-nerd ttf-cascadia-code-nerd ttf-poppins ttf-intel-one-mono;"
-			cmnds+=" gsettings set org.gnome.desktop.interface font-name 'Poppins Regular 12';"
-			cmnds+=" gsettings set org.gnome.desktop.interface document-font-name 'Poppins Regular 12';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface font-name 'Poppins Regular 12';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface document-font-name 'Poppins Regular 12';"
 			;;
 		"bashrc")
-			cmnds+=" echo '# Options' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s autocd                  # Auto cd' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s cdspell                 # Correct cd typos' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s checkwinsize            # Update windows size on command' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s histappend              # Append History instead of overwriting file' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s cmdhist                 # Bash attempts to save all lines of a multiple-line command in the same history entry' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s extglob                 # Extended pattern' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s no_empty_cmd_completion # No empty completion' >> ~/.bashrc;"
-			cmnds+=" echo 'shopt -s expand_aliases          # Expand aliases' >> ~/.bashrc;"
-			cmnds+=" echo '' >> ~/.bashrc;"
-			cmnds+=" echo '# History' >> ~/.bashrc;"
-			cmnds+=" echo 'export HISTSIZE=1000                    # History will save N commands' >> ~/.bashrc;"
-			cmnds+=" echo 'export HISTFILESIZE=\${HISTSIZE}         # History will remember N commands' >> ~/.bashrc;"
-			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ~/.bashrc;"
-			cmnds+=" echo 'export HISTTIMEFORMAT=\"%F %T \"          # Add date to history' >> ~/.bashrc;"
-			cmnds+=" echo '' >> ~/.bashrc;"
-			cmnds+=" echo '# History ignore list' >> ~/.bashrc;"
-			cmnds+=" echo 'export HISTIGNORE=\"&:ls:ll:la:cd:exit:clear:history:q:c\"' >> ~/.bashrc;"
-			cmnds+=" echo '' >> ~/.bashrc;"
-			cmnds+=" echo '# Ignore upper and lowercase when TAB completion' >> ~/.bashrc;"
-			cmnds+=" echo 'bind \"set completion-ignore-case on\"' >> ~/.bashrc;"
-			cmnds+=" echo '' >> ~/.bashrc;"
-			cmnds+=" echo '' >> ~/.bashrc;"
-			cmnds+=" echo '# Init zoxide (autojump)' >> ~/.bashrc;"
-			cmnds+=" echo '# use j ou ji (com fzf)' >> ~/.bashrc;"
-			cmnds+=" echo 'command -v zoxide &>/dev/null && eval \"\$(zoxide init bash --cmd j)\"' >> ~/.bashrc;"
+			cmnds+=" echo '# Options' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s autocd                  # Auto cd' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s cdspell                 # Correct cd typos' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s checkwinsize            # Update windows size on command' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s histappend              # Append History instead of overwriting file' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s cmdhist                 # Bash attempts to save all lines of a multiple-line command in the same history entry' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s extglob                 # Extended pattern' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s no_empty_cmd_completion # No empty completion' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'shopt -s expand_aliases          # Expand aliases' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '# History' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTSIZE=1000                    # History will save N commands' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTFILESIZE=\${HISTSIZE}         # History will remember N commands' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTCONTROL=ignoredups:erasedups # Ingore duplicates and spaces (ignoreboth)' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTTIMEFORMAT=\"%F %T \"          # Add date to history' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '# History ignore list' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'export HISTIGNORE=\"&:ls:ll:la:cd:exit:clear:history:q:c\"' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '# Ignore upper and lowercase when TAB completion' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'bind \"set completion-ignore-case on\"' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '# Init zoxide (autojump)' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo '# use j ou ji (com fzf)' >> ${USER_HOME}/.bashrc;"
+			cmnds+=" echo 'command -v zoxide &>/dev/null && eval \"\$(zoxide init bash --cmd j)\"' >> ${USER_HOME}/.bashrc;"
 			;;
 		"flat")
 			cmnds+=" pacman -S --noconfirm flatpak;"
 			;;
 		"rice")
 			cmnds+=" if ! command -v git &>/dev/null; then pacman -S --noconfirm git; fi;"
-			cmnds+=" if [ ! -d \"\$HOME/.src\" ]; then mkdir -p \"\$HOME/.src\"; fi;"
-			cmnds+=" git clone https://github.com/yeyushengfan258/Afterglow-Cursors \$HOME/.src/After;"
-			cmnds+=" git clone https://github.com/yeyushengfan258/Reversal-gtk-theme \$HOME/.src/Reversal;"
-			cmnds+=" git clone https://github.com/yeyushengfan258/McMuse-icon-theme \$HOME/.src/McMuse;"
-			cmnds+=" chmod +x \$HOME/.src/After/install.sh;"
-			cmnds+=" chmod +x \$HOME/.src/Reversal/install.sh;"
-			cmnds+=" chmod +x \$HOME/.src/McMuse/install.sh;"
-			cmnds+=" \$HOME/.src/McMuse/install.sh -c -blue;"
-			cmnds+=" \$HOME/.src/Reversal/install.sh -l;"
-			cmnds+=" \$HOME/.src/After/install.sh;"
-			cmnds+=" gtk-update-icon-cache ~/.local/share/icons/McMuse-blue-dark 2>/dev/null;"
+			cmnds+=" if [ ! -d \"${USER_HOME}/Downloads/.src\" ]; then mkdir -p \"${USER_HOME}/Downloads/.src\"; fi;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/Afterglow-Cursors ${USER_HOME}/Downloads/.src/After;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/Reversal-gtk-theme ${USER_HOME}/Downloads/.src/Reversal;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/McMuse-icon-theme ${USER_HOME}/Downloads/.src/McMuse;"
+			cmnds+=" chmod +x ${USER_HOME}/Downloads/.src/After/install.sh;"
+			cmnds+=" chmod +x ${USER_HOME}/Downloads/.src/Reversal/install.sh;"
+			cmnds+=" chmod +x ${USER_HOME}/Downloads/.src/McMuse/install.sh;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- ${USER_HOME}/Downloads/.src/McMuse/install.sh -c -blue;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- ${USER_HOME}/Downloads/.src/Reversal/install.sh -l;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- ${USER_HOME}/Downloads/.src/After/install.sh;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gtk-update-icon-cache ${USER_HOME}/.local/share/icons/McMuse-blue-dark 2>/dev/null;"
 			cmnds+=" gtk-update-icon-cache /usr/share/icons/McMuse-blue-dark 2>/dev/null;"
-			cmnds+=" gsettings set org.gnome.desktop.interface cursor-theme 'Afterglow-cursors';"
-			cmnds+=" gsettings set org.gnome.desktop.interface icon-theme 'McMuse-blue-dark';"
-			cmnds+=" gsettings set org.gnome.desktop.interface gtk-theme 'Reversal';"
-			cmnds+=" gsettings set org.gnome.shell.extensions.user-theme name 'Reversal';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface cursor-theme 'Afterglow-cursors';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface icon-theme 'McMuse-blue-dark';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.interface gtk-theme 'Reversal';"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.shell.extensions.user-theme name 'Reversal';"
 			;;
 		"wall")
 			cmnds+=" WALLPAPER_URL=\"https://raw.githubusercontent.com/amonetlol/rice/main/0130.jpg\";"
-			cmnds+=" DEST_DIR=\"\$HOME/Imagens/Wallpapers\";"
-			cmnds+=" DEST_FILE=\"\$DEST_DIR/0130.jpg\";"
-			cmnds+=" if [ ! -d \"\$DEST_DIR\" ]; then mkdir -p \"\$DEST_DIR\" || { echo \"Erro ao criar a pasta \$DEST_DIR\"; exit 1; }; echo \"Pasta \$DEST_DIR criada.\"; else echo \"Pasta \$DEST_DIR já existe.\"; fi;"
+			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
+			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
+			cmnds+=" if [ ! -d \"${DEST_DIR}\" ]; then mkdir -p \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; }; echo \"Pasta ${DEST_DIR} criada.\"; else echo \"Pasta ${DEST_DIR} já existe.\"; fi;"
 			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
-			cmnds+=" if wget -O \"\$DEST_FILE\" \"\$WALLPAPER_URL\"; then echo \"Download concluído: \$DEST_FILE\"; else echo \"Erro ao baixar o wallpaper.\"; exit 1; fi;"
-			cmnds+=" gsettings set org.gnome.desktop.background picture-uri \"file://\$DEST_FILE\";"
-			cmnds+=" gsettings set org.gnome.desktop.background picture-uri-dark \"file://\$DEST_FILE\" 2>/dev/null;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\";"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\";"
+			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri-dark \"file://${DEST_FILE}\" 2>/dev/null;"
 			;;
 		"chao")
 			cmnds+=" pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com;"
@@ -190,8 +190,8 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"hide")
 			cmnds+=" apps=(\"btop\" \"htop\" \"avahi-discover\" \"picom\" \"nvim\" \"Alacritty\" \"rofi-theme-selector\" \"bvnc\" \"bssh\" \"arandr\" \"vim\" \"ranger\" \"kitty\" \"kvantummanager\" \"meld\" \"qt5ct\" \"qt6ct\" \"qv4l2\" \"qvidcap\" \"nvim\" \"stoken-gui\" \"stoken-gui-small\" \"tint2\" \"yad-settings\" \"org.gnome.Extensions\" \"fish\" \"yad-icon-browser\" \"micro\" \"yelp\");"
-			cmnds+=" mkdir -p ~/.local/share/applications/;"
-			cmnds+=" for app in \"\${apps[@]}\"; do if [ -f \"/usr/share/applications/\$app.desktop\" ]; then cp \"/usr/share/applications/\$app.desktop\" ~/.local/share/applications/; echo \"NoDisplay=true\" >> ~/.local/share/applications/\$app.desktop; echo \"Ocultado: \$app\"; else echo \"Arquivo \$app.desktop não encontrado\"; fi; done;"
+			cmnds+=" mkdir -p ${USER_HOME}/.local/share/applications/;"
+			cmnds+=" for app in \"\${apps[@]}\"; do if [ -f \"/usr/share/applications/\${app}.desktop\" ]; then cp \"/usr/share/applications/\${app}.desktop\" ${USER_HOME}/.local/share/applications/; echo \"NoDisplay=true\" >> ${USER_HOME}/.local/share/applications/\${app}.desktop; echo \"Ocultado: \${app}\"; else echo \"Arquivo \${app}.desktop não encontrado\"; fi; done;"
 			;;
 	esac
 done
