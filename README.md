@@ -1,1 +1,5 @@
-# arch_post_install
+# arch_pi
+
+Dependências:
+- git
+- zenity
