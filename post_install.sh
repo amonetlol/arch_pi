@@ -3,6 +3,10 @@
 # Obtém o usuário atual e o diretório home
 CURRENT_USER=$(whoami)
 USER_HOME=$(eval echo ~$CURRENT_USER)
+LOG_FILE="${USER_HOME}/Downloads/post_install.log"
+
+# Cria ou limpa o arquivo de log
+echo "Início da execução: $(date)" > "${LOG_FILE}"
 
 # Exibe uma caixa de seleção múltipla com botões Tudo ON e Tudo OFF
 opcoes=$(zenity --list --checklist \
@@ -48,7 +52,7 @@ case $? in
     elif [ "$opcoes" = "Tudo OFF" ]; then
       opcoes=""
     else
-      echo "Cancelado pelo usuário."
+      echo "Cancelado pelo usuário." | tee -a "${LOG_FILE}"
       exit 1
     fi
     ;;
@@ -67,7 +71,8 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"aur_helper")
 			cmnds+=" if ! command -v git &>/dev/null; then pacman -S --noconfirm git; fi;"
-			cmnds+=" if [ ! -d \"${USER_HOME}/Downloads/.src\" ]; then mkdir -p \"${USER_HOME}/Downloads/.src\" && cd \"${USER_HOME}/Downloads/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; else cd \"${USER_HOME}/Downloads/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; fi;"
+			cmnds+=" mkdir -p \"${USER_HOME}/Downloads/.src\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${USER_HOME}/Downloads/.src\" && chmod 755 \"${USER_HOME}/Downloads/.src\";"
+			cmnds+=" if [ ! -d \"${USER_HOME}/Downloads/.src/yay-bin\" ]; then cd \"${USER_HOME}/Downloads/.src\" && runuser -u ${CURRENT_USER} -- git clone https://aur.archlinux.org/yay-bin && cd yay-bin && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; else cd \"${USER_HOME}/Downloads/.src/yay-bin\" && runuser -u ${CURRENT_USER} -- git pull && runuser -u ${CURRENT_USER} -- makepkg --noconfirm -si; fi;"
 			;;
 		"ft")
 			cmnds+=" mkdir -p \"${USER_HOME}/.config/fastfetch/\";"
@@ -87,7 +92,7 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"star")
 			cmnds+=" pacman -S starship --noconfirm;"
-			cmnds+=" wget -O ${USER_HOME}/.config/starship.toml https://raw.githubusercontent.com/amonetlol/terminal-bash/refs/heads/main/starship-arch-os.toml;"
+			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O ${USER_HOME}/.config/starship.toml https://raw.githubusercontent.com/amonetlol/terminal-bash/refs/heads/main/starship-arch-os.toml;"
 			cmnds+=" echo 'eval \"\$(starship init bash)\"' >> ${USER_HOME}/.bashrc;"
 			;;
 		"debloat")
@@ -152,7 +157,7 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"rice")
 			cmnds+=" if ! command -v git &>/dev/null; then pacman -S --noconfirm git; fi;"
-			cmnds+=" if [ ! -d \"${USER_HOME}/Downloads/.src\" ]; then mkdir -p \"${USER_HOME}/Downloads/.src\"; fi;"
+			cmnds+=" mkdir -p \"${USER_HOME}/Downloads/.src\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${USER_HOME}/Downloads/.src\" && chmod 755 \"${USER_HOME}/Downloads/.src\";"
 			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/Afterglow-Cursors ${USER_HOME}/Downloads/.src/After;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/Reversal-gtk-theme ${USER_HOME}/Downloads/.src/Reversal;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- git clone https://github.com/yeyushengfan258/McMuse-icon-theme ${USER_HOME}/Downloads/.src/McMuse;"
@@ -173,7 +178,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" WALLPAPER_URL=\"https://raw.githubusercontent.com/amonetlol/rice/main/0130.jpg\";"
 			cmnds+=" DEST_DIR=\"${USER_HOME}/Imagens/Wallpapers\";"
 			cmnds+=" DEST_FILE=\"${DEST_DIR}/0130.jpg\";"
-			cmnds+=" if [ ! -d \"${DEST_DIR}\" ]; then mkdir -p \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; }; echo \"Pasta ${DEST_DIR} criada.\"; else echo \"Pasta ${DEST_DIR} já existe.\"; fi;"
+			cmnds+=" if [ ! -d \"${DEST_DIR}\" ]; then mkdir -p \"${DEST_DIR}\" && chown ${CURRENT_USER}:${CURRENT_USER} \"${DEST_DIR}\" || { echo \"Erro ao criar a pasta ${DEST_DIR}\"; exit 1; }; echo \"Pasta ${DEST_DIR} criada.\"; else echo \"Pasta ${DEST_DIR} já existe.\"; fi;"
 			cmnds+=" if ! command -v wget &>/dev/null; then pacman -S --noconfirm wget; fi;"
 			cmnds+=" runuser -u ${CURRENT_USER} -- wget -O \"${DEST_FILE}\" \"${WALLPAPER_URL}\";"
 			cmnds+=" runuser -u ${CURRENT_USER} -- gsettings set org.gnome.desktop.background picture-uri \"file://${DEST_FILE}\";"
@@ -190,14 +195,14 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"hide")
 			cmnds+=" apps=(\"btop\" \"htop\" \"avahi-discover\" \"picom\" \"nvim\" \"Alacritty\" \"rofi-theme-selector\" \"bvnc\" \"bssh\" \"arandr\" \"vim\" \"ranger\" \"kitty\" \"kvantummanager\" \"meld\" \"qt5ct\" \"qt6ct\" \"qv4l2\" \"qvidcap\" \"nvim\" \"stoken-gui\" \"stoken-gui-small\" \"tint2\" \"yad-settings\" \"org.gnome.Extensions\" \"fish\" \"yad-icon-browser\" \"micro\" \"yelp\");"
-			cmnds+=" mkdir -p ${USER_HOME}/.local/share/applications/;"
+			cmnds+=" mkdir -p ${USER_HOME}/.local/share/applications/ && chown ${CURRENT_USER}:${CURRENT_USER} ${USER_HOME}/.local/share/applications/;"
 			cmnds+=" for app in \"\${apps[@]}\"; do if [ -f \"/usr/share/applications/\${app}.desktop\" ]; then cp \"/usr/share/applications/\${app}.desktop\" ${USER_HOME}/.local/share/applications/; echo \"NoDisplay=true\" >> ${USER_HOME}/.local/share/applications/\${app}.desktop; echo \"Ocultado: \${app}\"; else echo \"Arquivo \${app}.desktop não encontrado\"; fi; done;"
 			;;
 	esac
 done
 
 (
-	pkexec bash -c "$cmnds"
+	pkexec bash -c "$cmnds" | tee -a "${LOG_FILE}"
 ) |
 	zenity --progress \
 	--title="Executando as ações" \
@@ -208,4 +213,5 @@ done
 # Mensagem de aviso final
 zenity --info \
 	--title="AVISO" \
-	--text="Processos finalizados"
+	--text="Processos finalizados. Log salvo em ${LOG_FILE}"
+echo "Fim da execução: $(date)" >> "${LOG_FILE}"
