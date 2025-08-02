@@ -37,13 +37,14 @@ opcoes=$(zenity --list --checklist \
   FALSE flat "Flatpak" \
   TRUE rice "Cursor, Tema e Icones" \
   TRUE wall "Wallpaper" \
-  TRUE chao "Chaotic")
+  TRUE chao "Chaotic" \
+  TRUE hide "Hidden Shortcut")
 
 # Verifica se o usuário clicou em ON, OFF ou cancelou
 case $? in
   1)
     if [ "$opcoes" = "ON" ]; then
-      opcoes="vm,aur_helper,ft,nv,alias_,star,debloat,twe,nerdapp,app,misc,ref,files,font,bashrc,flat,rice,wall,chao"
+      opcoes="vm,aur_helper,ft,nv,alias_,star,debloat,twe,nerdapp,app,misc,ref,files,font,bashrc,flat,rice,wall,chao,hide"
     elif [ "$opcoes" = "OFF" ]; then
       opcoes=""
     else
@@ -66,7 +67,7 @@ for opcao in "${comandos[@]}"; do
 			;;
 		"aur_helper")
 			cmnds+=" if ! command -v git &>/dev/null; then pacman -S --noconfirm git; fi;"
-			cmnds+=" if [ ! -d \"\$HOME/.src\" ]; then mkdir -p \"\$HOME/. Gsrc\" && cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; else cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; fi;"
+			cmnds+=" if [ ! -d \"\$HOME/.src\" ]; then mkdir -p \"\$HOME/.src\" && cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; else cd \"\$HOME/.src\" && git clone https://aur.archlinux.org/yay-bin && cd yay-bin && makepkg --noconfirm -si; fi;"
 			;;
 		"ft")
 			cmnds+=" mkdir -p \"\${HOME}/.config/fastfetch/\";"
@@ -157,7 +158,7 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" git clone https://github.com/yeyushengfan258/McMuse-icon-theme \$HOME/.src/McMuse;"
 			cmnds+=" chmod +x \$HOME/.src/After/install.sh;"
 			cmnds+=" chmod +x \$HOME/.src/Reversal/install.sh;"
-			cmnds+=" chmod +x \$HOME/.src/McMuse/installto.sh;"
+			cmnds+=" chmod +x \$HOME/.src/McMuse/install.sh;"
 			cmnds+=" \$HOME/.src/McMuse/install.sh -c -blue;"
 			cmnds+=" \$HOME/.src/Reversal/install.sh -l;"
 			cmnds+=" \$HOME/.src/After/install.sh;"
@@ -186,6 +187,11 @@ for opcao in "${comandos[@]}"; do
 			cmnds+=" echo '[chaotic-aur]' | tee -a /etc/pacman.conf;"
 			cmnds+=" echo 'Include = /etc/pacman.d/chaotic-mirrorlist' | tee -a /etc/pacman.conf;"
 			cmnds+=" pacman -Syu --noconfirm;"
+			;;
+		"hide")
+			cmnds+=" apps=(\"btop\" \"htop\" \"avahi-discover\" \"picom\" \"nvim\" \"Alacritty\" \"rofi-theme-selector\" \"bvnc\" \"bssh\" \"arandr\" \"vim\" \"ranger\" \"kitty\" \"kvantummanager\" \"meld\" \"qt5ct\" \"qt6ct\" \"qv4l2\" \"qvidcap\" \"nvim\" \"stoken-gui\" \"stoken-gui-small\" \"tint2\" \"yad-settings\" \"org.gnome.Extensions\" \"fish\" \"yad-icon-browser\" \"micro\" \"yelp\");"
+			cmnds+=" mkdir -p ~/.local/share/applications/;"
+			cmnds+=" for app in \"\${apps[@]}\"; do if [ -f \"/usr/share/applications/\$app.desktop\" ]; then cp \"/usr/share/applications/\$app.desktop\" ~/.local/share/applications/; echo \"NoDisplay=true\" >> ~/.local/share/applications/\$app.desktop; echo \"Ocultado: \$app\"; else echo \"Arquivo \$app.desktop não encontrado\"; fi; done;"
 			;;
 	esac
 done
